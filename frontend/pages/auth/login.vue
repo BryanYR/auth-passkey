@@ -54,11 +54,7 @@ const handlePasskeyLogin = async () => {
     await fetchUser()
     await navigateTo('/dashboard')
   } catch (e: any) {
-    if (e?.name === 'NotAllowedError') {
-      error.value = 'Autenticación cancelada'
-    } else {
-      error.value = e?.data?.statusMessage ?? e?.message ?? 'No se pudo autenticar con passkey'
-    }
+    error.value = `[${e?.name ?? 'Error'}] ${e?.message ?? e?.data?.statusMessage ?? 'No se pudo autenticar con passkey'}`
   } finally {
     loading.value = false
   }

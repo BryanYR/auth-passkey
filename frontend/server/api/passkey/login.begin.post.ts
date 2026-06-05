@@ -8,29 +8,14 @@ export default defineEventHandler(async (event) => {
   // Fase 4: rate limiting — 10 req/min por IP
   const { ip } = applyRateLimit(event, 'passkey:login:begin', 10)
 
-  const body = await readBody(event)
   const config = useRuntimeConfig()
   const { rpID } = config.webauthn as { rpName: string; rpID: string; origin: string }
 
-  let allowCredentials: { id: string; transports: AuthenticatorTransport[] }[] | undefined
-
-  if (body?.email) {
-    const user = await db.getUserByEmail(body.email as string)
-    if (user) {
-      const creds = await db.getCredentialsByUserId(user.id)
-      if (creds.length > 0) {
-        allowCredentials = creds.map(c => ({
-          id: c.credentialID,
-          type: 'public-key' as const,
-          transports: c.transports as AuthenticatorTransport[],
-        }))
-      }
-    }
-  }
-
+  // Discoverable credentials: sin allowCredentials el browser muestra su selector
+  // nativo con todas las passkeys registradas para este dominio (auth-passkey.vercel.app).
+  // Evita problemas de ID mismatch y es el flujo recomendado por FIDO Alliance.
   const options = await generateAuthenticationOptions({
     rpID,
-    allowCredentials,
     userVerification: 'preferred',
   })
 
