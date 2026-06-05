@@ -11,6 +11,8 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const { rpID, origin } = config.webauthn as { rpName: string; rpID: string; origin: string }
 
+  console.log('WebAuthn config:', { rpID, origin })
+
   const expectedChallenge = getChallengeCookie(event)
 
   const challengeData = await db.getChallenge(expectedChallenge)
