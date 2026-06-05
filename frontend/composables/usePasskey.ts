@@ -27,10 +27,10 @@ export const usePasskey = () => {
     isLoading.value = true
     error.value = null
     try {
-      const options = await $fetch('/api/passkey/register/begin', { method: 'POST' })
+      const options = await $fetch('/api/passkey/register.begin', { method: 'POST' })
       const { startRegistration } = await import('@simplewebauthn/browser')
       const credential = await startRegistration(options as any)
-      return await $fetch('/api/passkey/register/finish', {
+      return await $fetch('/api/passkey/register.finish', {
         method: 'POST',
         body: { credential, friendlyName },
       })
@@ -46,13 +46,13 @@ export const usePasskey = () => {
     isLoading.value = true
     error.value = null
     try {
-      const options = await $fetch('/api/passkey/login/begin', {
+      const options = await $fetch('/api/passkey/login.begin', {
         method: 'POST',
         body: { email: email || undefined },
       })
       const { startAuthentication } = await import('@simplewebauthn/browser')
       const credential = await startAuthentication(options as any)
-      return await $fetch('/api/passkey/login/finish', {
+      return await $fetch('/api/passkey/login.finish', {
         method: 'POST',
         body: { credential },
       })
