@@ -29,9 +29,11 @@ export default defineEventHandler(async (event) => {
       expectedOrigin: origin,
       expectedRPID: rpID,
     })
-  } catch {
-    logSecurityEvent({ event: 'passkey.registration.failure', ip, userId: user.id, reason: 'fido2_verification_exception' })
-    throw createError({ statusCode: 400, statusMessage: 'Verificación FIDO2 fallida' })
+  } catch (e: unknown) {
+    const errMsg = e instanceof Error ? e.message : String(e)
+    logSecurityEvent({ event: 'passkey.registration.failure', ip, userId: user.id, reason: 'fido2_verification_exception', meta: { error: errMsg } })
+    console.error('[passkey register.finish] verifyRegistrationResponse threw:', errMsg)
+    throw createError({ statusCode: 400, statusMessage: 'Verificación FIDO2 fallida', message: errMsg })
   }
 
   if (!verification.verified || !verification.registrationInfo) {
