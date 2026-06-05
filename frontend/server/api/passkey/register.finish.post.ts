@@ -40,12 +40,16 @@ export default defineEventHandler(async (event) => {
   await db.markChallengeUsed(expectedChallenge)
   clearChallengeCookie(event)
 
-  const { credentialID, credentialPublicKey, counter, credentialDeviceType, credentialBackedUp } =
+  const { credentialPublicKey, counter, credentialDeviceType, credentialBackedUp } =
     verification.registrationInfo
+
+  // body.credential.id es el Base64URLString que el browser envía — mismo formato
+  // que usa durante el login, garantizado no vacío y correctamente codificado.
+  const credentialID = body.credential.id as string
 
   const stored = await db.addCredential({
     userId: user.id,
-    credentialID: typeof credentialID === 'string' ? credentialID : Buffer.from(credentialID as unknown as Uint8Array).toString('base64url'),
+    credentialID,
     credentialPublicKey: credentialPublicKey as unknown as Uint8Array,
     counter,
     deviceType: credentialDeviceType,

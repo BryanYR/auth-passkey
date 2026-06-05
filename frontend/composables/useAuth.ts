@@ -10,7 +10,10 @@ export const useAuth = () => {
 
   const fetchUser = async () => {
     try {
-      user.value = await $fetch<AuthUser>('/api/auth/me')
+      // useRequestFetch reenvía las cookies del browser en SSR (server-side middleware)
+      // En client-side usa $fetch normal — ambos funcionan correctamente
+      const fetch = useRequestFetch()
+      user.value = await fetch<AuthUser>('/api/auth/me')
     } catch {
       user.value = null
     }
