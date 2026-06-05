@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
       expectedChallenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
+      requireUserVerification: false,
     })
   } catch (e: unknown) {
     const errMsg = e instanceof Error ? e.message : String(e)
