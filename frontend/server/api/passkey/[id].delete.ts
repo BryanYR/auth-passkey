@@ -1,11 +1,11 @@
 import { requireAuth } from '../../utils/session'
-import { removeCredential } from '../../utils/store'
+import * as db from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
-  const { user } = requireAuth(event)
+  const { user } = await requireAuth(event)
   const id = getRouterParam(event, 'id') as string
 
-  const removed = removeCredential(id, user.id)
+  const removed = await db.removeCredential(id, user.id)
   if (!removed) {
     throw createError({ statusCode: 404, statusMessage: 'Credencial no encontrada' })
   }

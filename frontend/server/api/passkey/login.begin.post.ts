@@ -1,8 +1,13 @@
 import { generateAuthenticationOptions } from '@simplewebauthn/server'
 import { setChallengeCookie } from '../../utils/session'
-import { users, getCredentialsByUserId, challenges } from '../../utils/store'
+import * as db from '../../utils/db'
+import { applyRateLimit } from '../../utils/rateLimiter'
+import { logSecurityEvent } from '../../utils/securityLogger'
 
 export default defineEventHandler(async (event) => {
+  // Fase 4: rate limiting — 10 req/min por IP
+  const { ip } = applyRateLimit(event, 'passkey:login:begin', 10)
+
   const body = await readBody(event)
   const config = useRuntimeConfig()
   const { rpID } = config.webauthn as { rpName: string; rpID: string; origin: string }
@@ -10,9 +15,9 @@ export default defineEventHandler(async (event) => {
   let allowCredentials: { id: string; transports: AuthenticatorTransport[] }[] | undefined
 
   if (body?.email) {
-    const user = users.get((body.email as string).toLowerCase().trim())
+    const user = await db.getUserByEmail(body.email as string)
     if (user) {
-      const creds = getCredentialsByUserId(user.id)
+      const creds = await db.getCredentialsByUserId(user.id)
       if (creds.length > 0) {
         allowCredentials = creds.map(c => ({
           id: c.credentialID,
@@ -28,7 +33,7 @@ export default defineEventHandler(async (event) => {
     userVerification: 'preferred',
   })
 
-  challenges.set(options.challenge, {
+  await db.saveChallenge(options.challenge, {
     userId: null,
     type: 'authentication',
     expiresAt: Date.now() + 5 * 60 * 1000,
@@ -36,6 +41,8 @@ export default defineEventHandler(async (event) => {
   })
 
   setChallengeCookie(event, options.challenge)
+
+  logSecurityEvent({ event: 'passkey.auth.success', ip, meta: { step: 'begin' } })
 
   return options
 })

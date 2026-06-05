@@ -1,9 +1,9 @@
 import { requireAuth } from '../../utils/session'
-import { getCredentialsByUserId } from '../../utils/store'
+import * as db from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
-  const { user } = requireAuth(event)
-  const creds = getCredentialsByUserId(user.id)
+  const { user } = await requireAuth(event)
+  const creds = await db.getCredentialsByUserId(user.id)
 
   return creds.map(c => ({
     id: c.id,

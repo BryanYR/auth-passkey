@@ -12,7 +12,9 @@
     "@nuxtjs/tailwindcss": "^6.12.2",
     "@simplewebauthn/browser": "^9.0.1",
     "@simplewebauthn/server": "^9.0.3",
-    "nuxt": "^3.13.0"
+    "@types/pg": "^8.20.0",
+    "nuxt": "^3.13.0",
+    "pg": "^8.21.0"
   },
   "devDependencies": {
     "typescript": "^5.5.4",

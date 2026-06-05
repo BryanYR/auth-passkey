@@ -1,6 +1,7 @@
 import { getCookie, setCookie, deleteCookie, createError } from 'h3'
 import type { H3Event } from 'h3'
-import { sessions, usersById } from './store'
+import type { User, Session } from './store'
+import * as db from './db'
 
 export const SESSION_COOKIE = 'auth_session'
 export const CHALLENGE_COOKIE = 'webauthn_challenge'
@@ -15,7 +16,7 @@ const COOKIE_BASE = {
 export function setSessionCookie(event: H3Event, sessionId: string) {
   setCookie(event, SESSION_COOKIE, sessionId, {
     ...COOKIE_BASE,
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7, // 7 días
   })
 }
 
@@ -26,7 +27,7 @@ export function clearSessionCookie(event: H3Event) {
 export function setChallengeCookie(event: H3Event, challenge: string) {
   setCookie(event, CHALLENGE_COOKIE, challenge, {
     ...COOKIE_BASE,
-    maxAge: 300, // 5 minutes
+    maxAge: 300, // 5 minutos
   })
 }
 
@@ -34,14 +35,14 @@ export function clearChallengeCookie(event: H3Event) {
   deleteCookie(event, CHALLENGE_COOKIE, COOKIE_BASE)
 }
 
-export function requireAuth(event: H3Event) {
+export async function requireAuth(event: H3Event): Promise<{ session: Session; user: User }> {
   const sessionId = getCookie(event, SESSION_COOKIE)
   if (!sessionId) throw createError({ statusCode: 401, statusMessage: 'No autenticado' })
 
-  const session = sessions.get(sessionId)
+  const session = await db.getSession(sessionId)
   if (!session) throw createError({ statusCode: 401, statusMessage: 'Sesión inválida' })
 
-  const user = usersById.get(session.userId)
+  const user = await db.getUserById(session.userId)
   if (!user) throw createError({ statusCode: 401, statusMessage: 'Usuario no encontrado' })
 
   return { session, user }

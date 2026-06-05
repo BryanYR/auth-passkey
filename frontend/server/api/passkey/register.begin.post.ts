@@ -1,13 +1,13 @@
 import { generateRegistrationOptions } from '@simplewebauthn/server'
 import { requireAuth, setChallengeCookie } from '../../utils/session'
-import { getCredentialsByUserId, challenges } from '../../utils/store'
+import * as db from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
-  const { user } = requireAuth(event)
+  const { user } = await requireAuth(event)
   const config = useRuntimeConfig()
   const { rpName, rpID } = config.webauthn as { rpName: string; rpID: string; origin: string }
 
-  const existing = getCredentialsByUserId(user.id)
+  const existing = await db.getCredentialsByUserId(user.id)
 
   const options = await generateRegistrationOptions({
     rpName,
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     },
   })
 
-  challenges.set(options.challenge, {
+  await db.saveChallenge(options.challenge, {
     userId: user.id,
     type: 'registration',
     expiresAt: Date.now() + 5 * 60 * 1000,

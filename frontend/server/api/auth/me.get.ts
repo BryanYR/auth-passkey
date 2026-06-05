@@ -1,7 +1,7 @@
 import { requireAuth } from '../../utils/session'
 
 export default defineEventHandler(async (event) => {
-  const { user } = requireAuth(event)
+  const { user } = await requireAuth(event)
   return {
     id: user.id,
     email: user.email,
