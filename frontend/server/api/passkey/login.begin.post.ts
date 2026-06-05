@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
       if (creds.length > 0) {
         allowCredentials = creds.map(c => ({
           id: c.credentialID,
+          type: 'public-key' as const,
           transports: c.transports as AuthenticatorTransport[],
         }))
       }
